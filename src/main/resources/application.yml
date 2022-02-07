@@ -1,0 +1,82 @@
+server:
+  port: 9998
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: sharding-demo
+  shardingsphere:
+    mode:
+      type: Memory
+    datasource:
+      names: s1,s2
+      s1:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://192.168.91.144:3306/video?useUnicode=true&nullCatalogMeansCurrent=true&characterEncoding=utf-8&serverTimezone=GMT%2B8&useSSL=false
+        username: root
+        password: 123456
+        type: com.zaxxer.hikari.HikariDataSource
+        hikari:
+          maximum-pool-size: 60
+          idle-timeout: 60000
+          connection-timeout: 60000
+          validation-timeout: 3000
+          max-lifetime: 60000
+          login-timeout: 5
+          minimum-idle: 10
+      s2:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://192.168.91.150:3306/video?useUnicode=true&nullCatalogMeansCurrent=true&characterEncoding=utf-8&serverTimezone=GMT%2B8&useSSL=false
+        username: root
+        password: 123456
+        type: com.zaxxer.hikari.HikariDataSource
+        hikari:
+          maximum-pool-size: 60
+          idle-timeout: 60000
+          connection-timeout: 60000
+          validation-timeout: 3000
+          max-lifetime: 60000
+          login-timeout: 5
+          minimum-idle: 10
+    props:
+      sql-show: true
+    rules:
+      readwrite-splitting:
+        data-sources:
+          pr_ds:
+            load-balancer-name: round_robin
+            props:
+              write-data-source-name: s1
+              read-data-source-names: s2 #官方文档太坑了,这里根本不是配置读写数据源的名称
+            type: Static
+            write-data-source-name: s1
+            read-data-source-names: s2
+        load-balancers:
+          round_robin:
+            type: ROUND_ROBIN
+
+system:
+  core-pool-size: 50
+  maximum-pool-size: 100
+  keep-alive-time: 0
+  blocking-queue-size: 5000
+  dingtalk:
+    token: ${TOKEN}
+    secret: ${SECRET}
+    bold-package: com.linchtech
+    at-mobiles: ${ADMIN_MOBILE}
+swagger:
+  enable: true
+mybatis-plus:
+  type-aliases-package: com.linchtech.shardingdemo.entity
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      logic-delete-value: 0 # 逻辑已删除值(默认为 1)
+      logic-not-delete-value: 1 # 逻辑未删除值(默认为 0)
+logging:
+  level:
+    org.apache: debug
+    root: debug
